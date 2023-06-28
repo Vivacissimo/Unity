@@ -1,0 +1,12 @@
+ public float controllerLookSmoothTime;   .1
+    public float lookSmoothTime;  .1
+    public float cameraDistance;   5
+    [Space]
+    public Vector3 pivotOffset;   0 0
+    public Vector2 xRotationLimits;   -45   45
+
+    public float gravity;   9.81
+    public float sensitivity;   12
+    public float moveSpeed;   5
+    public float runSpeed;  10
+    public float jumpStrength;   5
