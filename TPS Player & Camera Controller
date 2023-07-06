@@ -1,0 +1,81 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TPSController : MonoBehaviour
+{
+    [SerializeField]
+    private Transform cha;
+
+    [SerializeField]
+    private Transform cam;
+
+    public float moveSpeed = 5f;
+
+    [SerializeField]
+    Camera mainCam;
+
+    Animator anim;
+
+    private void Awake()
+    {
+        anim = GetComponentInChildren<Animator>();
+    }
+
+    private void Update()
+    {
+        LookAround();
+        Move();
+        Zoom();
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void Move()
+    {
+        Vector2 moveInput = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        bool isMove = moveInput.magnitude != 0;
+        anim.SetBool("isRun", isMove);
+        if(isMove)
+        {
+            Vector3 lookForward = new Vector3(cam.forward.x, 0f, cam.forward.z).normalized;
+            Vector3 lookRight = new Vector3(cam.right.x, 0f, cam.right.z).normalized;
+            Vector3 moveDir = lookForward * moveInput.y + lookRight * moveInput.x;
+
+            cha.forward = moveDir;  // lookForward로 변경하면 시선 정면 고정 ---> 좌우 앞뒤 애니메이션 다 따로 넣어줘야 함 --> 직관적인 컨트롤 가능
+            transform.position += moveDir * Time.deltaTime * moveSpeed;
+        }
+        Debug.DrawRay(cam.position, new Vector3(cam.forward.x, 0f, cam.forward.z).normalized, Color.red);  // Ray가 보는 방향으로 캐릭터 이동 시키기
+                                                                                                           // But, Ray가 상하로 움직이는 것을 막기 위해 Y값에 0을 넣어줌
+    }
+
+
+    void LookAround()  // 마우스 이동으로 카메라 회전
+    {
+        Vector2 mouseDelta = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));   // 이전값과 현재값을 주로 Delta로 표현
+        Vector3 camAngle = cam.rotation.eulerAngles;
+        float x = camAngle.x - mouseDelta.y;
+
+
+        //.. 카메라가 뒤집히는 현상 막기위해 카메라 각도 제한
+        if(x < 180f)
+        {
+            x = Mathf.Clamp(x, -1f, 70f);  //0으로 안 잡은 것은 수평면 아래로 내려가지 않는 것을 막기 위한 것
+        }
+
+        else
+        {
+            x = Mathf.Clamp(x, 335f, 361f);
+        }
+
+        cam.rotation = Quaternion.Euler(x, camAngle.y + mouseDelta.x, camAngle.z);
+    }
+
+    void Zoom()
+    {
+        var scroll = Input.mouseScrollDelta;
+        mainCam.fieldOfView = Mathf.Clamp(mainCam.fieldOfView - scroll.y, 30f, 70f);
+    }
+
+}
